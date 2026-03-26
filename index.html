@@ -163,7 +163,7 @@
         /* 文字编辑区 */
         .diary-input {
             width: 100%;
-            min-height: 300px;
+            min-height: 200px;
             padding: 20px;
             border: none;
             border-radius: 20px;
@@ -179,6 +179,76 @@
         .diary-input:focus {
             background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 0 20px rgba(248, 180, 196, 0.2);
+        }
+
+        /* 照片上传区域 */
+        .photo-upload-area {
+            margin-top: 15px;
+        }
+
+        .photo-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ffe4e8 0%, #fff5f5 100%);
+            border: 2px dashed rgba(255, 180, 190, 0.5);
+            border-radius: 20px;
+            color: #c08090;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .photo-upload-btn:hover {
+            background: linear-gradient(135deg, #fff0f2 0%, #fff 100%);
+            border-color: #f0a0b0;
+        }
+
+        .photo-upload-btn input {
+            display: none;
+        }
+
+        /* 照片预览网格 */
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-item .delete-photo {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 25px;
+            height: 25px;
+            background: rgba(200,100,120,0.9);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .photo-item:hover .delete-photo {
+            opacity: 1;
         }
 
         /* 预览区 */
@@ -197,6 +267,23 @@
             color: #c4a0a8;
             margin-bottom: 15px;
             text-align: center;
+        }
+
+        /* 预览照片区域 */
+        .preview-photos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .preview-photo {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            object-fit: cover;
         }
 
         .preview-text {
@@ -502,19 +589,6 @@
             transform-style: preserve-3d;
         }
 
-        /* 书脊 */
-        .book-spine {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 30px;
-            height: 100%;
-            background: linear-gradient(90deg, #d4a0a8 0%, #e8c4c8 100%);
-            border-radius: 5px 0 0 5px;
-            transform: rotateY(-90deg);
-            transform-origin: right center;
-        }
-
         /* 书页 */
         .book-page {
             position: absolute;
@@ -529,31 +603,6 @@
         }
 
         .book-page::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 3px;
-            height: 100%;
-            background: linear-gradient(180deg, #f0d4d8 0%, #e8c4c8 50%, #f0d4d8 100%);
-        }
-
-        /* 翻页效果 */
-        .page-flip {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #fff9fa 0%, #fff5f7 100%);
-            border-radius: 5px 15px 15px 5px;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
-            transform-origin: left center;
-            transform: rotateY(0deg);
-            backface-visibility: hidden;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        .page-flip::before {
             content: '';
             position: absolute;
             left: 0;
@@ -764,6 +813,22 @@
             text-align: center;
         }
 
+        .diary-detail-photos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .diary-detail-photo {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+
         .diary-detail-text {
             font-size: 1.1rem;
             line-height: 2;
@@ -828,9 +893,19 @@
                 placeholder="在这里写下你的心情..."
             ></textarea>
 
+            <!-- 照片上传区域 -->
+            <div class="photo-upload-area">
+                <label class="photo-upload-btn">
+                    📷 添加照片到日记
+                    <input type="file" accept="image/*" id="photoUpload" multiple>
+                </label>
+                <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+            </div>
+
             <!-- 预览区 -->
             <div class="preview-area" id="previewArea">
                 <div class="preview-date" id="previewDate"></div>
+                <div class="preview-photos" id="previewPhotos"></div>
                 <div class="preview-text" id="previewText"></div>
             </div>
         </div>
@@ -953,9 +1028,6 @@
     <div class="bookshelf-modal" id="bookshelfModal">
         <div class="book-container">
             <div class="book">
-                <!-- 书脊 -->
-                <div class="book-spine"></div>
-                
                 <!-- 日记列表页 -->
                 <div class="book-page" id="diaryListPage">
                     <div class="shelf-header">
@@ -978,13 +1050,14 @@
                 </div>
 
                 <!-- 日记详情页 -->
-                <div class="page-flip" id="diaryDetailPage">
-                    <div class="diary-detail">
+                <div class="book-page" id="diaryDetailPage" style="display:none;">
+                    <div class="diary-detail active">
                         <div class="diary-detail-header">
                             <button class="back-list" id="backToList">← 返回列表</button>
                         </div>
                         <div class="diary-detail-content" id="diaryDetailContent">
                             <div class="diary-detail-date" id="detailDate"></div>
+                            <div class="diary-detail-photos" id="detailPhotos"></div>
                             <div class="diary-detail-text" id="detailText"></div>
                         </div>
                         <div class="diary-detail-actions">
@@ -1023,6 +1096,8 @@
         const previewArea = document.getElementById('previewArea');
         const previewText = document.getElementById('previewText');
         const previewDate = document.getElementById('previewDate');
+        const previewPhotos = document.getElementById('previewPhotos');
+        const photoPreviewGrid = document.getElementById('photoPreviewGrid');
         const fontBtns = document.querySelectorAll('.font-btn');
         const bgOpacity = document.getElementById('bgOpacity');
         const textOpacity = document.getElementById('textOpacity');
@@ -1043,8 +1118,42 @@
             textColor: '#5a3a4a',
             textOpacity: 100,
             bgImage: null,
+            photos: [], // 照片数组
             customFonts: []
         };
+
+        // 照片上传处理
+        document.getElementById('photoUpload').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    state.photos.push(e.target.result);
+                    renderPhotoPreviews();
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            });
+            // 清空input以允许重新选择相同文件
+            e.target.value = '';
+        });
+
+        // 渲染照片预览网格
+        function renderPhotoPreviews() {
+            photoPreviewGrid.innerHTML = state.photos.map((photo, index) => `
+                <div class="photo-item">
+                    <img src="${photo}" alt="照片 ${index + 1}">
+                    <button class="delete-photo" onclick="deletePhoto(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        // 删除照片
+        function deletePhoto(index) {
+            state.photos.splice(index, 1);
+            renderPhotoPreviews();
+            updatePreview();
+        }
 
         // 更新预览
         function updatePreview() {
@@ -1060,6 +1169,11 @@
                 const dateStr = date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
                 previewDate.textContent = '🐚 ' + dateStr + ' 🐚';
             }
+
+            // 渲染预览照片
+            previewPhotos.innerHTML = state.photos.map(photo => 
+                `<img src="${photo}" class="preview-photo" alt="日记照片">`
+            ).join('');
 
             let bg = state.bgColor;
             if (state.bgImage) {
@@ -1145,6 +1259,7 @@
                 updatePreview();
             };
             reader.readAsDataURL(file);
+            e.target.value = '';
         });
 
         function clearBgImage(el) {
@@ -1218,7 +1333,6 @@
 
         function addDiary(entry) {
             const diaries = getDiaries();
-            // 检查是否同一天已有日记
             const existingIndex = diaries.findIndex(d => d.date === entry.date);
             if (existingIndex >= 0) {
                 diaries[existingIndex] = entry;
@@ -1243,8 +1357,8 @@
         // ========== 保存日记 ==========
         
         saveBtn.addEventListener('click', () => {
-            if (!diaryInput.value.trim()) {
-                alert('请先写点什么再保存哦～ 🐚');
+            if (!diaryInput.value.trim() && state.photos.length === 0) {
+                alert('请先写点什么或添加照片再保存哦～ 🐚');
                 return;
             }
 
@@ -1258,6 +1372,7 @@
                 textColor: state.textColor,
                 textOpacity: state.textOpacity,
                 bgImage: state.bgImage,
+                photos: state.photos, // 保存照片
                 savedAt: new Date().toISOString()
             };
 
@@ -1265,10 +1380,8 @@
             
             // 视觉反馈
             saveBtn.textContent = '✅ 已保存';
-            saveBtn.style.background = 'linear-gradient(135deg, #7ec8e3 0%, #5fb3d3 100%)';
             setTimeout(() => {
                 saveBtn.textContent = '💾 保存日记';
-                saveBtn.style.background = 'linear-gradient(135deg, #7ec8e3 0%, #5fb3d3 100%)';
             }, 1500);
         });
 
@@ -1281,6 +1394,7 @@
             canvas.width = 1080;
             canvas.height = 1920;
 
+            // 绘制背景
             if (state.bgImage) {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
@@ -1288,25 +1402,23 @@
                     ctx.globalAlpha = state.bgOpacity / 100;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     ctx.globalAlpha = 1;
-                    drawText();
+                    drawContent();
                 };
                 img.src = state.bgImage;
             } else {
                 const colors = state.bgColor.match(/#[a-fA-F0-9]{6}/g) || ['#ffe4e8', '#fff5f5'];
-                ctx.fillStyle = state.bgColor.includes('#') ? state.bgColor : colors[0];
-                if (!state.bgColor.includes('#')) {
-                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                    gradient.addColorStop(0, colors[0]);
-                    gradient.addColorStop(1, colors[1] || colors[0]);
-                    ctx.fillStyle = gradient;
-                }
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, colors[0]);
+                gradient.addColorStop(1, colors[1] || colors[0]);
+                ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                drawText();
+                drawContent();
             }
 
-            function drawText() {
+            async function drawContent() {
                 const fontFamily = state.font.replace(/['"]/g, '');
                 
+                // 绘制日期
                 ctx.fillStyle = state.textColor;
                 ctx.globalAlpha = (state.textOpacity / 100) * 0.7;
                 ctx.font = `bold 48px "${fontFamily}"`;
@@ -1319,13 +1431,54 @@
                 }
                 ctx.fillText(dateStr, canvas.width / 2, 150);
 
+                // 绘制照片
+                let y = 220;
+                for (const photo of state.photos) {
+                    try {
+                        const photoImg = new Image();
+                        photoImg.crossOrigin = 'anonymous';
+                        await new Promise((resolve) => {
+                            photoImg.onload = resolve;
+                            photoImg.onerror = resolve;
+                            photoImg.src = photo;
+                        });
+                        
+                        const maxWidth = 400;
+                        const maxHeight = 400;
+                        let width = photoImg.width;
+                        let height = photoImg.height;
+                        
+                        if (width > maxWidth) {
+                            height = height * maxWidth / width;
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width = width * maxHeight / height;
+                            height = maxHeight;
+                        }
+                        
+                        const x = (canvas.width - width) / 2;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, width, height, 15);
+                        ctx.clip();
+                        ctx.drawImage(photoImg, x, y, width, height);
+                        ctx.restore();
+                        
+                        y += height + 20;
+                    } catch (e) {
+                        console.log('Photo draw error:', e);
+                    }
+                }
+
+                // 绘制正文
                 ctx.globalAlpha = state.textOpacity / 100;
                 ctx.fillStyle = state.textColor;
                 ctx.font = `${state.fontSize * 2}px "${fontFamily}"`;
+                ctx.textAlign = 'left';
                 
                 const text = diaryInput.value || '';
                 const lines = text.split('\n');
-                let y = 280;
                 const lineHeight = state.fontSize * 2.5;
                 const maxWidth = canvas.width - 120;
 
@@ -1349,10 +1502,14 @@
                     }
                 });
 
+                // 绘制贝壳装饰
+                ctx.globalAlpha = 0.5;
                 ctx.font = '80px serif';
+                ctx.textAlign = 'center';
                 ctx.fillText('🐚', 100, canvas.height - 200);
-                ctx.fillText('🐚', canvas.width - 150, canvas.height - 200);
+                ctx.fillText('🐚', canvas.width - 100, canvas.height - 200);
 
+                // 下载
                 const link = document.createElement('a');
                 link.download = `贝壳日记_${diaryDate.value || '未命名'}.png`;
                 link.href = canvas.toDataURL('image/png');
@@ -1392,12 +1549,9 @@
         });
 
         backToList.addEventListener('click', () => {
-            diaryDetailPage.style.transform = 'rotateY(0deg)';
-            setTimeout(() => {
-                diaryDetailPage.style.display = 'none';
-                diaryListPage.style.display = 'block';
-                renderDiaryList();
-            }, 300);
+            diaryDetailPage.style.display = 'none';
+            diaryListPage.style.display = 'block';
+            renderDiaryList();
         });
 
         function renderDiaryList() {
@@ -1428,19 +1582,25 @@
             nextPageBtn.disabled = currentPage === totalPages;
             document.getElementById('listNav').style.display = totalPages > 1 ? 'flex' : 'none';
 
-            diaryList.innerHTML = pageDiaries.map(diary => `
-                <div class="diary-entry" onclick="showDiaryDetail('${diary.date}')">
-                    <div class="diary-entry-thumb" style="background: ${diary.bgImage ? `url(${diary.bgImage})` : diary.bgColor};">
-                        🐚
+            diaryList.innerHTML = pageDiaries.map(diary => {
+                const thumbStyle = diary.bgImage ? `background: url(${diary.bgImage}); background-size: cover; background-position: center;` : `background: ${diary.bgColor};`;
+                const photoCount = diary.photos && diary.photos.length > 0 ? `<span style="position:absolute;bottom:5px;right:5px;background:rgba(200,100,120,0.8);color:white;padding:2px 8px;border-radius:10px;font-size:0.7rem;">📷 ${diary.photos.length}</span>` : '';
+                
+                return `
+                    <div class="diary-entry" onclick="showDiaryDetail('${diary.date}')">
+                        <div class="diary-entry-thumb" style="${thumbStyle}">
+                            🐚
+                            ${photoCount}
+                        </div>
+                        <div class="diary-entry-date">🐚 ${formatDate(diary.date)} 🐚</div>
+                        <div class="diary-entry-preview">${(diary.text || '').slice(0, 50)}${(diary.text || '').length > 50 ? '...' : ''}</div>
+                        <div class="diary-entry-actions">
+                            <button class="load-btn" onclick="event.stopPropagation(); loadDiary('${diary.date}')">✏️ 加载</button>
+                            <button class="delete-btn" onclick="event.stopPropagation(); confirmDeleteDiary('${diary.date}')">🗑️ 删除</button>
+                        </div>
                     </div>
-                    <div class="diary-entry-date">🐚 ${formatDate(diary.date)} 🐚</div>
-                    <div class="diary-entry-preview">${diary.text.slice(0, 50)}${diary.text.length > 50 ? '...' : ''}</div>
-                    <div class="diary-entry-actions">
-                        <button class="load-btn" onclick="event.stopPropagation(); loadDiary('${diary.date}')">✏️ 加载</button>
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteDiary('${diary.date}')">🗑️ 删除</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function formatDate(dateStr) {
@@ -1456,7 +1616,6 @@
             currentViewDiary = diary;
             diaryListPage.style.display = 'none';
             diaryDetailPage.style.display = 'block';
-            diaryDetailPage.style.transform = 'rotateY(0deg)';
 
             const detailContent = document.getElementById('diaryDetailContent');
             detailContent.style.background = diary.bgImage ? `url(${diary.bgImage})` : diary.bgColor;
@@ -1464,7 +1623,18 @@
             detailContent.style.backgroundPosition = 'center';
 
             document.getElementById('detailDate').textContent = '🐚 ' + formatDate(diary.date) + ' 🐚';
-            document.getElementById('detailText').textContent = diary.text;
+            
+            // 渲染详情页照片
+            const detailPhotos = document.getElementById('detailPhotos');
+            if (diary.photos && diary.photos.length > 0) {
+                detailPhotos.innerHTML = diary.photos.map(photo => 
+                    `<img src="${photo}" class="diary-detail-photo" alt="日记照片">`
+                ).join('');
+            } else {
+                detailPhotos.innerHTML = '';
+            }
+            
+            document.getElementById('detailText').textContent = diary.text || '';
             document.getElementById('detailText').style.fontFamily = diary.font;
             document.getElementById('detailText').style.fontSize = diary.fontSize + 'px';
             document.getElementById('detailText').style.color = diary.textColor;
@@ -1476,7 +1646,7 @@
             if (!diary) return;
 
             diaryDate.value = diary.date;
-            diaryInput.value = diary.text;
+            diaryInput.value = diary.text || '';
             state.font = diary.font;
             state.fontSize = diary.fontSize;
             state.bgColor = diary.bgColor;
@@ -1484,6 +1654,7 @@
             state.textColor = diary.textColor;
             state.textOpacity = diary.textOpacity;
             state.bgImage = diary.bgImage;
+            state.photos = diary.photos || [];
 
             // 更新UI
             fontBtns.forEach(b => {
@@ -1499,15 +1670,14 @@
             document.getElementById('fontSizeValue').textContent = diary.fontSize + 'px';
             document.getElementById('customTextColor').value = diary.textColor;
 
+            renderPhotoPreviews();
             updatePreview();
             bookshelfModal.classList.remove('active');
             
-            // 滚动到顶部
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 删除确认
-        function confirmDelete(date) {
+        function confirmDeleteDiary(date) {
             if (confirm('确定要删除这篇日记吗？')) {
                 deleteDiary(date);
             }
@@ -1531,7 +1701,7 @@
                     ctx.globalAlpha = diary.bgOpacity / 100;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     ctx.globalAlpha = 1;
-                    drawDiaryText(ctx, diary);
+                    drawDiaryContent(ctx, diary);
                 };
                 img.src = diary.bgImage;
             } else {
@@ -1541,10 +1711,10 @@
                 gradient.addColorStop(1, colors[1] || colors[0]);
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                drawDiaryText(ctx, diary);
+                drawDiaryContent(ctx, diary);
             }
 
-            function drawDiaryText(ctx, diary) {
+            async function drawDiaryContent(ctx, diary) {
                 const fontFamily = diary.font.replace(/['"]/g, '');
                 
                 ctx.fillStyle = diary.textColor;
@@ -1555,12 +1725,50 @@
                 const dateStr = '🐚 ' + formatDate(diary.date) + ' 🐚';
                 ctx.fillText(dateStr, canvas.width / 2, 150);
 
+                // 绘制照片
+                let y = 220;
+                for (const photo of (diary.photos || [])) {
+                    try {
+                        const photoImg = new Image();
+                        photoImg.crossOrigin = 'anonymous';
+                        await new Promise((resolve) => {
+                            photoImg.onload = resolve;
+                            photoImg.onerror = resolve;
+                            photoImg.src = photo;
+                        });
+                        
+                        const maxWidth = 400;
+                        const maxHeight = 400;
+                        let width = photoImg.width;
+                        let height = photoImg.height;
+                        
+                        if (width > maxWidth) {
+                            height = height * maxWidth / width;
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width = width * maxHeight / height;
+                            height = maxHeight;
+                        }
+                        
+                        const x = (canvas.width - width) / 2;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, width, height, 15);
+                        ctx.clip();
+                        ctx.drawImage(photoImg, x, y, width, height);
+                        ctx.restore();
+                        
+                        y += height + 20;
+                    } catch (e) {}
+                }
+
                 ctx.globalAlpha = diary.textOpacity / 100;
                 ctx.fillStyle = diary.textColor;
                 ctx.font = `${diary.fontSize * 2}px "${fontFamily}"`;
+                ctx.textAlign = 'left';
                 
-                const lines = diary.text.split('\n');
-                let y = 280;
+                const lines = (diary.text || '').split('\n');
                 const lineHeight = diary.fontSize * 2.5;
                 const maxWidth = canvas.width - 120;
 
@@ -1584,9 +1792,11 @@
                     }
                 });
 
+                ctx.globalAlpha = 0.5;
                 ctx.font = '80px serif';
+                ctx.textAlign = 'center';
                 ctx.fillText('🐚', 100, canvas.height - 200);
-                ctx.fillText('🐚', canvas.width - 150, canvas.height - 200);
+                ctx.fillText('🐚', canvas.width - 100, canvas.height - 200);
 
                 const link = document.createElement('a');
                 link.download = `贝壳日记_${diary.date}.png`;
