@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>贝壳日记 | Shell Diary</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            min-height: 100vh;
+            background: linear-gradient(180deg,
+                #1a3a5a 0%,
+                #2d5a7b 15%,
+                #4a7a9b 30%,
+                #7eb3c9 45%,
+                #a8d4e6 55%,
+                #f0c4c4 65%,
+                #f8d4d4 75%,
+                #ffe4e8 85%,
+                #fff5f5 100%);
+            background-attachment: fixed;
+            padding: 20px;
+            padding-bottom: 120px;
+        }
+
+        /* 贝壳装饰 */
+        .shell-decoration {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .shell {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.3;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shell:nth-child(1) { left: 5%; bottom: 10px; animation-delay: 0s; }
+        .shell:nth-child(2) { left: 25%; bottom: 5px; animation-delay: -1s; font-size: 2.5rem; }
+        .shell:nth-child(3) { left: 45%; bottom: 15px; animation-delay: -2s; }
+        .shell:nth-child(4) { left: 65%; bottom: 8px; animation-delay: -3s; font-size: 2rem; }
+        .shell:nth-child(5) { left: 85%; bottom: 12px; animation-delay: -4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        /* 气泡 */
+        .bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,200,200,0.2));
+            border-radius: 50%;
+            animation: rise linear infinite;
+        }
+
+        @keyframes rise {
+            0% { bottom: -50px; opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { bottom: 110%; opacity: 0; }
+        }
+
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 标题 */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 2px 2px 8px rgba(100,50,50,0.3);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        /* 日记卡片 */
+        .diary-card {
+            background: linear-gradient(135deg,
+                rgba(255, 240, 245, 0.95) 0%,
+                rgba(255, 230, 235, 0.95) 100%);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow:
+                0 10px 40px rgba(200, 100, 120, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 2px solid rgba(255, 200, 210, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .diary-card::before {
+            content: '🐚';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        /* 日期选择 */
+        .date-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 180, 190, 0.4);
+            border-radius: 15px;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.2rem;
+            color: #8b5a6b;
+            background: rgba(255,255,255,0.6);
+            margin-bottom: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .date-input:focus {
+            border-color: #f8b4c4;
+            box-shadow: 0 0 15px rgba(248, 180, 196, 0.3);
+        }
+
+        /* 文字编辑区 */
+        .diary-input {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            line-height: 2;
+            color: #5a3a4a;
+            background: rgba(255, 255, 255, 0.7);
+            resize: none;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .diary-input:focus {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 20px rgba(248, 180, 196, 0.2);
+        }
+
+        /* 预览区 */
+        .preview-area {
+            margin-top: 20px;
+            padding: 30px;
+            border-radius: 20px;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-date {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.3rem;
+            color: #c4a0a8;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .preview-text {
+            font-size: 1.1rem;
+            line-height: 2.2;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            margin-top: 20px;
+            background: linear-gradient(135deg,
+                rgba(255, 245, 248, 0.98) 0%,
+                rgba(255, 240, 245, 0.98) 100%);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 5px 25px rgba(200, 100, 120, 0.15);
+        }
+
+        .control-section {
+            margin-bottom: 20px;
+        }
+
+        .control-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: #8b6b7b;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        /* 字体选择 */
+        .font-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .font-btn {
+            padding: 8px 15px;
+            border: 2px solid rgba(255, 180, 190, 0.4);
+            border-radius: 20px;
+            background: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            color: #7a5a6a;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .font-btn:hover, .font-btn.active {
+            background: linear-gradient(135deg, #f8d4d8 0%, #ffe4e8 100%);
+            border-color: #f0a0b0;
+            color: #6a4a5a;
+        }
+
+        /* 文件上传 */
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f0c4c8 0%, #f8d4d8 100%);
+            border: 2px dashed rgba(200, 100, 120, 0.4);
+            border-radius: 20px;
+            color: #7a5a6a;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .upload-btn:hover {
+            background: linear-gradient(135deg, #f8d4d8 0%, #ffe4e8 100%);
+            border-color: #f0a0b0;
+        }
+
+        .upload-btn input {
+            display: none;
+        }
+
+        /* 颜色选择 */
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-dot {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+        }
+
+        .color-dot:hover, .color-dot.active {
+            transform: scale(1.15);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+        }
+
+        /* 滑块 */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, rgba(255,200,210,0.3) 0%, #f8b4c4 100%);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f8d4d8 0%, #f0a0b0 100%);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(200,100,120,0.3);
+        }
+
+        .slider-value {
+            font-size: 0.9rem;
+            color: #8b6b7b;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        /* 下载按钮 */
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px 25px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #f0a0b0 0%, #e08090 100%);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(200, 100, 120, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(200, 100, 120, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Canvas（用于导出） */
+        #exportCanvas {
+            display: none;
+        }
+
+        /* 已选文件显示 */
+        .selected-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: rgba(248, 180, 196, 0.3);
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #7a5a6a;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .remove-file {
+            cursor: pointer;
+            opacity: 0.6;
+        }
+
+        .remove-file:hover {
+            opacity: 1;
+        }
+
+        /* 提示 */
+        .tip {
+            font-size: 0.8rem;
+            color: #a88a98;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 气泡 -->
+    <div class="bubbles" id="bubbles"></div>
+
+    <!-- 贝壳装饰 -->
+    <div class="shell-decoration">
+        <span class="shell">🐚</span>
+        <span class="shell">🪸</span>
+        <span class="shell">🐚</span>
+        <span class="shell">🪸</span>
+        <span class="shell">🐚</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>贝壳日记</h1>
+            <p class="subtitle">🐚 记录每一个温柔的瞬间 🐚</p>
+        </header>
+
+        <!-- 日记卡片 -->
+        <div class="diary-card">
+            <input type="date" class="date-input" id="diaryDate">
+            
+            <textarea 
+                class="diary-input" 
+                id="diaryInput"
+                placeholder="在这里写下你的心情..."
+            ></textarea>
+
+            <!-- 预览区 -->
+            <div class="preview-area" id="previewArea">
+                <div class="preview-date" id="previewDate"></div>
+                <div class="preview-text" id="previewText"></div>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <!-- 字体选择 -->
+            <div class="control-section">
+                <div class="control-label">🔤 选择字体</div>
+                <div class="font-buttons">
+                    <button class="font-btn active" data-font="'Noto Serif SC', serif">思源宋体</button>
+                    <button class="font-btn" data-font="'ZCOOL KuaiLe', cursive">站酷快乐体</button>
+                    <button class="font-btn" data-font="'Ma Shan Zheng', cursive">马善政楷体</button>
+                    <button class="font-btn" data-font="serif">系统衬线</button>
+                    <button class="font-btn" data-font="sans-serif">系统无衬线</button>
+                </div>
+            </div>
+
+            <!-- 上传自定义字体 -->
+            <div class="control-section">
+                <div class="control-label">📤 上传自定义字体</div>
+                <label class="upload-btn">
+                    📁 选择字体文件
+                    <input type="file" accept=".ttf,.otf,.woff,.woff2" id="fontUpload">
+                </label>
+                <span class="tip">支持 .ttf, .otf, .woff, .woff2 格式</span>
+                <div id="fontFiles"></div>
+            </div>
+
+            <!-- 背景设置 -->
+            <div class="control-section">
+                <div class="control-label">🖼️ 背景设置</div>
+                <label class="upload-btn">
+                    📷 上传背景图片
+                    <input type="file" accept="image/*" id="bgUpload">
+                </label>
+                <div id="bgFiles"></div>
+            </div>
+
+            <!-- 背景颜色 -->
+            <div class="control-section">
+                <div class="control-label">🎨 背景颜色</div>
+                <div class="color-picker">
+                    <span>预设：</span>
+                    <div class="color-options">
+                        <div class="color-dot active" style="background: linear-gradient(135deg, #ffe4e8, #fff5f5);" data-color="linear-gradient(135deg, #ffe4e8, #fff5f5)"></div>
+                        <div class="color-dot" style="background: linear-gradient(135deg, #e8f4fc, #f0f8ff);" data-color="linear-gradient(135deg, #e8f4fc, #f0f8ff)"></div>
+                        <div class="color-dot" style="background: linear-gradient(135deg, #fff8dc, #fffacd);" data-color="linear-gradient(135deg, #fff8dc, #fffacd)"></div>
+                        <div class="color-dot" style="background: linear-gradient(135deg, #f5f5dc, #fffaf0);" data-color="linear-gradient(135deg, #f5f5dc, #fffaf0)"></div>
+                        <div class="color-dot" style="background: linear-gradient(135deg, #faf0e6, #fff5ee);" data-color="linear-gradient(135deg, #faf0e6, #fff5ee)"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 背景透明度 -->
+            <div class="control-section">
+                <div class="control-label">✨ 背景透明度</div>
+                <div class="slider-container">
+                    <input type="range" class="slider" id="bgOpacity" min="0" max="100" value="70">
+                    <span class="slider-value" id="bgOpacityValue">70%</span>
+                </div>
+            </div>
+
+            <!-- 文字颜色 -->
+            <div class="control-section">
+                <div class="control-label">🖌️ 文字颜色</div>
+                <div class="color-picker">
+                    <span>预设：</span>
+                    <div class="color-options">
+                        <div class="color-dot active" style="background: #5a3a4a;" data-textcolor="#5a3a4a"></div>
+                        <div class="color-dot" style="background: #2c3e50;" data-textcolor="#2c3e50"></div>
+                        <div class="color-dot" style="background: #4a5568;" data-textcolor="#4a5568"></div>
+                        <div class="color-dot" style="background: #1a365d;" data-textcolor="#1a365d"></div>
+                        <div class="color-dot" style="background: #744210;" data-textcolor="#744210"></div>
+                    </div>
+                </div>
+                <input type="color" id="customTextColor" value="#5a3a4a" style="margin-top:10px; border:none; width:50px; height:30px; border-radius:10px; cursor:pointer;">
+            </div>
+
+            <!-- 文字透明度 -->
+            <div class="control-section">
+                <div class="control-label">💫 文字透明度</div>
+                <div class="slider-container">
+                    <input type="range" class="slider" id="textOpacity" min="30" max="100" value="100">
+                    <span class="slider-value" id="textOpacityValue">100%</span>
+                </div>
+            </div>
+
+            <!-- 文字大小 -->
+            <div class="control-section">
+                <div class="control-label">📏 文字大小</div>
+                <div class="slider-container">
+                    <input type="range" class="slider" id="fontSize" min="14" max="28" value="18">
+                    <span class="slider-value" id="fontSizeValue">18px</span>
+                </div>
+            </div>
+
+            <!-- 下载按钮 -->
+            <button class="download-btn" id="downloadBtn">
+                📥 下载日记图片
+            </button>
+        </div>
+    </div>
+
+    <!-- 导出用的 Canvas -->
+    <canvas id="exportCanvas"></canvas>
+
+    <script>
+        // 气泡效果
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            for (let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 20 + 5;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDuration = Math.random() * 10 + 8 + 's';
+                bubble.style.animationDelay = Math.random() * 10 + 's';
+                container.appendChild(bubble);
+            }
+        }
+        createBubbles();
+
+        // 元素
+        const diaryInput = document.getElementById('diaryInput');
+        const diaryDate = document.getElementById('diaryDate');
+        const previewArea = document.getElementById('previewArea');
+        const previewText = document.getElementById('previewText');
+        const previewDate = document.getElementById('previewDate');
+        const fontBtns = document.querySelectorAll('.font-btn');
+        const bgOpacity = document.getElementById('bgOpacity');
+        const textOpacity = document.getElementById('textOpacity');
+        const fontSize = document.getElementById('fontSize');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // 设置默认日期为今天
+        const today = new Date().toISOString().split('T')[0];
+        diaryDate.value = today;
+
+        // 状态
+        let state = {
+            font: "'Noto Serif SC', serif",
+            fontSize: 18,
+            bgColor: 'linear-gradient(135deg, #ffe4e8, #fff5f5)',
+            bgOpacity: 70,
+            textColor: '#5a3a4a',
+            textOpacity: 100,
+            bgImage: null,
+            customFonts: []
+        };
+
+        // 更新预览
+        function updatePreview() {
+            const text = diaryInput.value || '在这里写下你的心情...';
+            previewText.textContent = text;
+            previewText.style.fontFamily = state.font;
+            previewText.style.fontSize = state.fontSize + 'px';
+            previewText.style.color = state.textColor;
+            previewText.style.opacity = state.textOpacity / 100;
+
+            // 日期
+            if (diaryDate.value) {
+                const date = new Date(diaryDate.value);
+                const dateStr = date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+                previewDate.textContent = '🐚 ' + dateStr + ' 🐚';
+            }
+
+            // 背景
+            let bg = state.bgColor;
+            if (state.bgImage) {
+                bg = `url(${state.bgImage})`;
+            }
+            previewArea.style.background = bg;
+            previewArea.style.backgroundSize = 'cover';
+            previewArea.style.backgroundPosition = 'center';
+            
+            if (state.bgImage) {
+                previewArea.style.opacity = state.bgOpacity / 100;
+            } else {
+                previewArea.style.opacity = 1;
+            }
+        }
+
+        // 监听输入
+        diaryInput.addEventListener('input', updatePreview);
+        diaryDate.addEventListener('change', updatePreview);
+
+        // 字体选择
+        fontBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                fontBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.font = btn.dataset.font;
+                updatePreview();
+            });
+        });
+
+        // 自定义字体上传
+        document.getElementById('fontUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fontName = 'customFont_' + Date.now();
+            const font = new FontFace(fontName, `url(${URL.createObjectURL(file)})`);
+            
+            try {
+                await font.load();
+                document.fonts.add(font);
+                
+                state.customFonts.push({ name: fontName, file: file.name });
+                
+                // 添加新的字体按钮
+                const newBtn = document.createElement('button');
+                newBtn.className = 'font-btn';
+                newBtn.dataset.font = fontName;
+                newBtn.textContent = '📎 ' + file.name.slice(0, 10);
+                newBtn.addEventListener('click', () => {
+                    fontBtns.forEach(b => b.classList.remove('active'));
+                    newBtn.classList.add('active');
+                    state.font = fontName;
+                    updatePreview();
+                });
+                document.querySelector('.font-buttons').appendChild(newBtn);
+
+                // 显示已上传文件
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'selected-file';
+                fileDiv.innerHTML = `📎 ${file.name.slice(0, 15)}... <span class="remove-file" onclick="this.parentElement.remove()">✕</span>`;
+                document.getElementById('fontFiles').appendChild(fileDiv);
+
+                newBtn.click();
+            } catch (err) {
+                alert('字体加载失败，请尝试其他格式');
+            }
+        });
+
+        // 背景图片上传
+        document.getElementById('bgUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                state.bgImage = e.target.result;
+                
+                // 显示已上传文件
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'selected-file';
+                fileDiv.innerHTML = `🖼️ ${file.name.slice(0, 15)} <span class="remove-file" onclick="clearBgImage(this)">✕</span>`;
+                fileDiv.dataset.image = e.target.result;
+                document.getElementById('bgFiles').appendChild(fileDiv);
+                
+                updatePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function clearBgImage(el) {
+            if (state.bgImage) {
+                state.bgImage = null;
+                el.parentElement.remove();
+                updatePreview();
+            }
+        }
+
+        // 背景颜色选择
+        document.querySelectorAll('[data-color]').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('[data-color]').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                state.bgColor = dot.dataset.color;
+                updatePreview();
+            });
+        });
+
+        // 文字颜色选择
+        document.querySelectorAll('[data-textcolor]').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('[data-textcolor]').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                state.textColor = dot.dataset.textcolor;
+                document.getElementById('customTextColor').value = dot.dataset.textcolor;
+                updatePreview();
+            });
+        });
+
+        // 自定义颜色
+        document.getElementById('customTextColor').addEventListener('input', (e) => {
+            state.textColor = e.target.value;
+            document.querySelectorAll('[data-textcolor]').forEach(d => d.classList.remove('active'));
+            updatePreview();
+        });
+
+        // 滑块控制
+        bgOpacity.addEventListener('input', (e) => {
+            state.bgOpacity = parseInt(e.target.value);
+            document.getElementById('bgOpacityValue').textContent = state.bgOpacity + '%';
+            updatePreview();
+        });
+
+        textOpacity.addEventListener('input', (e) => {
+            state.textOpacity = parseInt(e.target.value);
+            document.getElementById('textOpacityValue').textContent = state.textOpacity + '%';
+            updatePreview();
+        });
+
+        fontSize.addEventListener('input', (e) => {
+            state.fontSize = parseInt(e.target.value);
+            document.getElementById('fontSizeValue').textContent = state.fontSize + 'px';
+            updatePreview();
+        });
+
+        // 下载功能
+        downloadBtn.addEventListener('click', async () => {
+            const canvas = document.getElementById('exportCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 设置画布大小
+            canvas.width = 1080;
+            canvas.height = 1920;
+
+            // 绘制背景
+            if (state.bgImage) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    ctx.globalAlpha = state.bgOpacity / 100;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    ctx.globalAlpha = 1;
+                    drawText();
+                };
+                img.src = state.bgImage;
+            } else {
+                // 渐变背景
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                if (state.bgColor.includes('#')) {
+                    ctx.fillStyle = state.bgColor;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } else {
+                    // 解析渐变色
+                    const colors = state.bgColor.match(/#[a-fA-F0-9]{6}/g) || ['#ffe4e8', '#fff5f5'];
+                    gradient.addColorStop(0, colors[0]);
+                    gradient.addColorStop(1, colors[1] || colors[0]);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                drawText();
+            }
+
+            function drawText() {
+                // 加载字体
+                const fontFamily = state.font.replace(/['"]/g, '');
+                
+                // 绘制日期
+                ctx.fillStyle = state.textColor;
+                ctx.globalAlpha = (state.textOpacity / 100) * 0.7;
+                ctx.font = `bold 48px "${fontFamily}"`;
+                ctx.textAlign = 'center';
+                
+                let dateStr = '';
+                if (diaryDate.value) {
+                    const date = new Date(diaryDate.value);
+                    dateStr = '🐚 ' + date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) + ' 🐚';
+                }
+                ctx.fillText(dateStr, canvas.width / 2, 150);
+
+                // 绘制正文
+                ctx.globalAlpha = state.textOpacity / 100;
+                ctx.fillStyle = state.textColor;
+                ctx.font = `${state.fontSize * 2}px "${fontFamily}"`;
+                
+                const text = diaryInput.value || '';
+                const lines = text.split('\n');
+                let y = 280;
+                const lineHeight = state.fontSize * 2.5;
+                const maxWidth = canvas.width - 120;
+                const wordsPerLine = Math.floor(maxWidth / (state.fontSize * 1.2));
+
+                lines.forEach(line => {
+                    // 自动换行
+                    const chars = line.split('');
+                    let currentLine = '';
+                    
+                    for (let char of chars) {
+                        const testLine = currentLine + char;
+                        if (ctx.measureText(testLine).width > maxWidth) {
+                            ctx.fillText(currentLine, 60, y);
+                            currentLine = char;
+                            y += lineHeight;
+                        } else {
+                            currentLine = testLine;
+                        }
+                    }
+                    if (currentLine) {
+                        ctx.fillText(currentLine, 60, y);
+                        y += lineHeight;
+                    }
+                });
+
+                // 绘制贝壳装饰
+                ctx.font = '80px serif';
+                ctx.fillText('🐚', 100, canvas.height - 200);
+                ctx.fillText('🐚', canvas.width - 150, canvas.height - 200);
+
+                // 下载
+                const link = document.createElement('a');
+                link.download = `贝壳日记_${diaryDate.value || '未命名'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+        });
+
+        // 初始化预览
+        updatePreview();
+    </script>
+</body>
+</html>
